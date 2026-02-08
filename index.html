@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Just One Question 😌</title>
+  <title>Just One Question 💖</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
   <style>
@@ -10,45 +10,83 @@
       margin: 0;
       height: 100vh;
       display: flex;
+      flex-direction: column;
       justify-content: center;
       align-items: center;
-      background: linear-gradient(135deg, #ff9a9e, #fad0c4);
       font-family: 'Comic Sans MS', cursive;
       overflow: hidden;
-      flex-direction: column;
+      background:
+        radial-gradient(circle at 20% 30%, rgba(255,255,255,0.3), transparent 40%),
+        radial-gradient(circle at 80% 20%, rgba(255,255,255,0.25), transparent 40%),
+        linear-gradient(135deg, #ff6f91, #ff9a9e, #fad0c4);
     }
 
-    .designer {
+    /* Floating hearts */
+    body::before {
+      content: "💖 💕 💘 💗 💞 💓";
       position: absolute;
-      top: 15px;
-      font-size: 14px;
+      top: -10%;
+      left: 0;
+      right: 0;
+      font-size: 40px;
+      opacity: 0.25;
+      text-align: center;
+      animation: floatHearts 10s linear infinite;
+      pointer-events: none;
+    }
+
+    @keyframes floatHearts {
+      0% { transform: translateY(0); }
+      100% { transform: translateY(120vh); }
+    }
+
+    /* Designer text */
+    .designer {
+      font-size: 26px;
       color: white;
+      margin-bottom: 25px;
+      text-align: center;
+      animation: glow 2s ease-in-out infinite;
+    }
+
+    @keyframes glow {
+      0%,100% { text-shadow: 0 0 10px rgba(255,255,255,0.5); }
+      50% { text-shadow: 0 0 20px rgba(255,255,255,0.9); }
     }
 
     .card {
       background: white;
-      padding: 30px;
-      border-radius: 20px;
+      padding: 35px;
+      border-radius: 25px;
       text-align: center;
-      box-shadow: 0 10px 30px rgba(0,0,0,0.2);
       width: 90%;
-      max-width: 400px;
+      max-width: 420px;
       position: relative;
+      box-shadow: 0 20px 45px rgba(0,0,0,0.25);
+      animation: popIn 0.5s ease;
+    }
+
+    @keyframes popIn {
+      from { transform: scale(0.85); opacity: 0; }
+      to { transform: scale(1); opacity: 1; }
     }
 
     h2 {
-      margin-bottom: 20px;
+      margin-bottom: 25px;
+      color: #333;
     }
 
     input {
-      padding: 10px;
+      padding: 12px;
       width: 80%;
       font-size: 16px;
+      border-radius: 12px;
+      border: 1px solid #ddd;
       margin-bottom: 15px;
     }
 
     button {
-      padding: 12px 25px;
+      padding: 12px 28px;
       font-size: 18px;
       border-radius: 30px;
       border: none;
@@ -67,7 +105,7 @@
     }
 
     .no {
-      background: #ccc;
+      background: #e0e0e0;
       position: absolute;
     }
 
@@ -81,22 +119,22 @@
 
 <div class="designer">✨ Designed by Shiivaaaay ✨</div>
 
-<!-- STEP 0: NAME -->
+<!-- NAME STEP -->
 <div class="card" id="nameStep">
-  <h2>👀 What's your name?</h2>
+  <h2>💌 What's your name?</h2>
   <input type="text" id="userName" placeholder="Enter your name">
   <br>
   <button class="yes" onclick="saveName()">Continue 💕</button>
 </div>
 
-<!-- STEP 1 -->
+<!-- QUESTION 1 -->
 <div class="card hidden" id="step1">
   <h2 id="q1Text"></h2>
   <button class="yes" onclick="nextQuestion()">Yes ❤️</button>
   <button class="no" id="no1">No 😏</button>
 </div>
 
-<!-- STEP 2 -->
+<!-- QUESTION 2 -->
 <div class="card hidden" id="step2">
   <h2>💘 Will you be my Valentine? 💘</h2>
   <button class="yes" onclick="finalYes()">YESSS 💖</button>
@@ -111,10 +149,7 @@
 
   function saveName() {
     const name = document.getElementById("userName").value.trim();
-    if (!name) {
-      alert("Please enter your name 😅");
-      return;
-    }
+    if (!name) return alert("Name please 😅");
 
     localStorage.setItem("name", name);
     localStorage.setItem("yesCount", 0);
@@ -131,22 +166,19 @@
     localStorage.setItem("noCount", noCount);
 
     const card = btn.parentElement;
-    const maxX = card.offsetWidth - btn.offsetWidth;
-    const maxY = card.offsetHeight - btn.offsetHeight;
-
-    btn.style.left = Math.random() * maxX + "px";
-    btn.style.top = Math.random() * maxY + "px";
+    btn.style.left = Math.random() * (card.offsetWidth - btn.offsetWidth) + "px";
+    btn.style.top = Math.random() * (card.offsetHeight - btn.offsetHeight) + "px";
   }
 
-  document.getElementById("no1").addEventListener("mouseover", e => moveButton(e.target));
-  document.getElementById("no2").addEventListener("mouseover", e => moveButton(e.target));
-  document.getElementById("no1").addEventListener("touchstart", e => moveButton(e.target));
-  document.getElementById("no2").addEventListener("touchstart", e => moveButton(e.target));
+  ["no1","no2"].forEach(id => {
+    const btn = document.getElementById(id);
+    btn.addEventListener("mouseover", () => moveButton(btn));
+    btn.addEventListener("touchstart", () => moveButton(btn));
+  });
 
   function nextQuestion() {
     yesCount++;
     localStorage.setItem("yesCount", yesCount);
-
     document.getElementById("step1").classList.add("hidden");
     document.getElementById("step2").classList.remove("hidden");
   }
@@ -155,26 +187,21 @@
     yesCount++;
     localStorage.setItem("yesCount", yesCount);
 
-    const name = localStorage.getItem("name");
-    const yes = localStorage.getItem("yesCount");
-    const no = localStorage.getItem("noCount");
-
     fetch(API_URL, {
       method: "POST",
       body: JSON.stringify({
-        name: name,
-        yesCount: yes,
-        noCount: no
+        name: localStorage.getItem("name"),
+        yesCount: localStorage.getItem("yesCount"),
+        noCount: localStorage.getItem("noCount")
       })
     });
 
     document.body.innerHTML = `
       <div class="designer">✨ Designed by Shiivaaaay ✨</div>
       <div class="card">
-        <h2>🎉 Yay ${name}! 🎉</h2>
-        <p>YES clicked: <b>${yes}</b> 💖</p>
-        <p>NO tried: <b>${no}</b> 😏</p>
+        <h2>🎉 Yay ${localStorage.getItem("name")}! 🎉</h2>
         <p>💑 Valentine locked in 💑</p>
+        <p>❤️ See you soon ❤️</p>
       </div>
     `;
   }
