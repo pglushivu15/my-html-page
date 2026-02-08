@@ -18,7 +18,6 @@
       flex-direction: column;
     }
 
-    /* Top text */
     .designer {
       position: absolute;
       top: 15px;
@@ -34,11 +33,18 @@
       box-shadow: 0 10px 30px rgba(0,0,0,0.2);
       width: 90%;
       max-width: 400px;
-      position: relative; /* IMPORTANT FIX */
+      position: relative;
     }
 
     h2 {
       margin-bottom: 20px;
+    }
+
+    input {
+      padding: 10px;
+      width: 80%;
+      font-size: 16px;
+      margin-bottom: 15px;
     }
 
     button {
@@ -73,60 +79,106 @@
 
 <body>
 
-  <div class="designer">✨ Designed by Shiivaaaay ✨</div>
+<div class="designer">✨ Designed by Shiivaaaay ✨</div>
 
-  <!-- Question 1 -->
-  <div class="card" id="step1">
-    <h2>👉 Will you go out with me? 🥺</h2>
-    <button class="yes" onclick="nextQuestion()">Yes ❤️</button>
-    <button class="no" id="no1">No 😏</button>
-  </div>
+<!-- STEP 0: NAME -->
+<div class="card" id="nameStep">
+  <h2>👀 What's your name?</h2>
+  <input type="text" id="userName" placeholder="Enter your name">
+  <br>
+  <button class="yes" onclick="saveName()">Continue 💕</button>
+</div>
 
-  <!-- Question 2 -->
-  <div class="card hidden" id="step2">
-    <h2>💘 Will you be my Valentine? 💘</h2>
-    <button class="yes" onclick="finalYes()">YESSS 💖</button>
-    <button class="no" id="no2">No 🙄</button>
-  </div>
+<!-- STEP 1 -->
+<div class="card hidden" id="step1">
+  <h2 id="q1Text"></h2>
+  <button class="yes" onclick="nextQuestion()">Yes ❤️</button>
+  <button class="no" id="no1">No 😏</button>
+</div>
 
-  <script>
-    function moveButton(btn) {
-      const card = btn.parentElement;
-      const maxX = card.offsetWidth - btn.offsetWidth;
-      const maxY = card.offsetHeight - btn.offsetHeight;
+<!-- STEP 2 -->
+<div class="card hidden" id="step2">
+  <h2>💘 Will you be my Valentine? 💘</h2>
+  <button class="yes" onclick="finalYes()">YESSS 💖</button>
+  <button class="no" id="no2">No 🙄</button>
+</div>
 
-      const x = Math.random() * maxX;
-      const y = Math.random() * maxY;
+<script>
+  const API_URL = "https://script.google.com/macros/s/AKfycbykjru_t_WM4usXiowXJ_Vqh6VPtlsqQSSsXuwnXubNBWZTuBwBEfZffXnhjOcxAsXn3w/exec";
 
-      btn.style.left = x + "px";
-      btn.style.top = y + "px";
+  let yesCount = 0;
+  let noCount = 0;
+
+  function saveName() {
+    const name = document.getElementById("userName").value.trim();
+    if (!name) {
+      alert("Please enter your name 😅");
+      return;
     }
 
-    const no1 = document.getElementById("no1");
-    const no2 = document.getElementById("no2");
+    localStorage.setItem("name", name);
+    localStorage.setItem("yesCount", 0);
+    localStorage.setItem("noCount", 0);
 
-    no1.addEventListener("mouseover", () => moveButton(no1));
-    no2.addEventListener("mouseover", () => moveButton(no2));
+    document.getElementById("nameStep").classList.add("hidden");
+    document.getElementById("step1").classList.remove("hidden");
+    document.getElementById("q1Text").innerText =
+      `👉 ${name}, will you go out with me? 🥺`;
+  }
 
-    no1.addEventListener("touchstart", () => moveButton(no1));
-    no2.addEventListener("touchstart", () => moveButton(no2));
+  function moveButton(btn) {
+    noCount++;
+    localStorage.setItem("noCount", noCount);
 
-    function nextQuestion() {
-      document.getElementById("step1").classList.add("hidden");
-      document.getElementById("step2").classList.remove("hidden");
-    }
+    const card = btn.parentElement;
+    const maxX = card.offsetWidth - btn.offsetWidth;
+    const maxY = card.offsetHeight - btn.offsetHeight;
 
-    function finalYes() {
-      document.body.innerHTML = `
-        <div class="designer">✨ Designed by Shiivaaaay ✨</div>
-        <div class="card">
-          <h2>🎉 YAYYYY!!! 🎉</h2>
-          <p>You just made me the happiest person 💕</p>
-          <p>💑 Valentine locked in 💑</p>
-        </div>
-      `;
-    }
-  </script>
+    btn.style.left = Math.random() * maxX + "px";
+    btn.style.top = Math.random() * maxY + "px";
+  }
+
+  document.getElementById("no1").addEventListener("mouseover", e => moveButton(e.target));
+  document.getElementById("no2").addEventListener("mouseover", e => moveButton(e.target));
+  document.getElementById("no1").addEventListener("touchstart", e => moveButton(e.target));
+  document.getElementById("no2").addEventListener("touchstart", e => moveButton(e.target));
+
+  function nextQuestion() {
+    yesCount++;
+    localStorage.setItem("yesCount", yesCount);
+
+    document.getElementById("step1").classList.add("hidden");
+    document.getElementById("step2").classList.remove("hidden");
+  }
+
+  function finalYes() {
+    yesCount++;
+    localStorage.setItem("yesCount", yesCount);
+
+    const name = localStorage.getItem("name");
+    const yes = localStorage.getItem("yesCount");
+    const no = localStorage.getItem("noCount");
+
+    fetch(API_URL, {
+      method: "POST",
+      body: JSON.stringify({
+        name: name,
+        yesCount: yes,
+        noCount: no
+      })
+    });
+
+    document.body.innerHTML = `
+      <div class="designer">✨ Designed by Shiivaaaay ✨</div>
+      <div class="card">
+        <h2>🎉 Yay ${name}! 🎉</h2>
+        <p>YES clicked: <b>${yes}</b> 💖</p>
+        <p>NO tried: <b>${no}</b> 😏</p>
+        <p>💑 Valentine locked in 💑</p>
+      </div>
+    `;
+  }
+</script>
 
 </body>
 </html>
